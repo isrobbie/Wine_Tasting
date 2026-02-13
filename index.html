@@ -518,7 +518,7 @@
                 const rating = wineRatings[letter].rating;
                 const comments = wineRatings[letter].comments;
 
-                if (rating !== '0') {
+                if (rating !== 'n/a' && rating !== '0') {
                     document.querySelector(`input[name="rating"][value="${rating}"]`).checked = true;
                 } else {
                     document.querySelectorAll('input[name="rating"]').forEach(r => r.checked = false);
@@ -535,7 +535,7 @@
 
         function didntTry() {
             wineRatings[currentWine.letter] = {
-                rating: '0',
+                rating: 'n/a',
                 comments: ''
             };
             updateWineCard(currentWine.letter);
