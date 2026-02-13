@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wine Tasting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: linear-gradient(135deg, #6D2E46 0%, #A26769 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6D2E46 0%, #3D1B2C 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: #ECE2D0;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #FFFFFF;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .form-content {
+            padding: 40px 30px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Name Screen */
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-size: 1.1em;
+            color: #3D1B2C;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: Arial, sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #A26769;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Wine Selection Screen */
+        .wine-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .wine-card {
+            background: #F5F5F5;
+            border: 3px solid #E0E0E0;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .wine-card:hover {
+            border-color: #A26769;
+            background: #ECE2D0;
+            transform: translateY(-3px);
+        }
+
+        .wine-card.rated {
+            background: #C8E6C9;
+            border-color: #4CAF50;
+        }
+
+        .wine-card.rated::after {
+            content: '✓';
+            display: block;
+            color: #4CAF50;
+            font-size: 1.5em;
+            margin-top: 5px;
+        }
+
+        .wine-label {
+            font-size: 3em;
+            font-weight: bold;
+            color: #6D2E46;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+        }
+
+        .wine-category {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        /* Rating Screen */
+        .current-wine {
+            background: #ECE2D0;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .current-wine h2 {
+            font-size: 3em;
+            color: #6D2E46;
+            margin-bottom: 5px;
+        }
+
+        .current-wine p {
+            color: #666;
+            font-style: italic;
+        }
+
+        .rating-container {
+            margin-top: 10px;
+        }
+
+        .rating-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            gap: 5px;
+        }
+
+        .rating-scale input[type="radio"] {
+            display: none;
+        }
+
+        .rating-scale label {
+            flex: 1;
+            text-align: center;
+            padding: 12px 5px;
+            background: #F5F5F5;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+            font-weight: normal;
+            margin: 0;
+        }
+
+        .rating-scale input[type="radio"]:checked + label {
+            background: #6D2E46;
+            color: white;
+            border-color: #6D2E46;
+            transform: scale(1.05);
+        }
+
+        .rating-scale label:hover {
+            border-color: #A26769;
+            background: #ECE2D0;
+        }
+
+        .rating-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.85em;
+            color: #666;
+            font-style: italic;
+        }
+
+        .rating-label-text {
+            text-align: left;
+            max-width: 45%;
+        }
+
+        .rating-label-text:last-child {
+            text-align: right;
+        }
+
+        .rating-label-text .main {
+            display: block;
+            font-weight: 600;
+        }
+
+        .rating-label-text .sub {
+            display: block;
+            font-size: 0.85em;
+            margin-top: 2px;
+            opacity: 0.8;
+        }
+
+        .button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #6D2E46 0%, #A26769 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(109, 46, 70, 0.3);
+        }
+
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .button.secondary {
+            background: #E0E0E0;
+            color: #3D1B2C;
+        }
+
+        .button.secondary:hover {
+            background: #D0D0D0;
+        }
+
+        .button.didnt-try {
+            background: #95A5A6;
+            margin-top: 10px;
+        }
+
+        .button.didnt-try:hover {
+            background: #7F8C8D;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button-group .button {
+            margin-top: 0;
+        }
+
+        .success-message {
+            display: none;
+            background: #4CAF50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.1em;
+        }
+
+        .error-message {
+            display: none;
+            background: #f44336;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.1em;
+        }
+
+        .progress {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 600px) {
+            .wine-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .rating-scale {
+                flex-wrap: wrap;
+            }
+
+            .rating-scale label {
+                flex-basis: calc(20% - 5px);
+                padding: 10px 2px;
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Wine Tasting</h1>
+            <p id="headerSubtitle"></p>
+        </div>
+
+        <div class="form-content">
+            <!-- Screen 1: Name Entry -->
+            <div class="screen active" id="nameScreen">
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" required>
+                </div>
+                <button class="button" onclick="submitName()">Continue</button>
+            </div>
+
+            <!-- Screen 2: Wine Selection -->
+            <div class="screen" id="selectionScreen">
+                <p class="progress">Select a wine to rate</p>
+                <div class="wine-grid" id="wineGrid">
+                    <div class="wine-card" onclick="selectWine('A', 'White')">
+                        <div class="wine-label">A</div>
+                        <div class="wine-category">White</div>
+                    </div>
+                    <div class="wine-card" onclick="selectWine('B', 'White')">
+                        <div class="wine-label">B</div>
+                        <div class="wine-category">White</div>
+                    </div>
+                    <div class="wine-card" onclick="selectWine('C', 'White')">
+                        <div class="wine-label">C</div>
+                        <div class="wine-category">White</div>
+                    </div>
+                    <div class="wine-card" onclick="selectWine('D', 'Red')">
+                        <div class="wine-label">D</div>
+                        <div class="wine-category">Red</div>
+                    </div>
+                    <div class="wine-card" onclick="selectWine('E', 'Red')">
+                        <div class="wine-label">E</div>
+                        <div class="wine-category">Red</div>
+                    </div>
+                    <div class="wine-card" onclick="selectWine('F', 'Red')">
+                        <div class="wine-label">F</div>
+                        <div class="wine-category">Red</div>
+                    </div>
+                    <div class="wine-card" onclick="selectWine('G', 'Sparkling')">
+                        <div class="wine-label">G</div>
+                        <div class="wine-category">Sparkling</div>
+                    </div>
+                    <div class="wine-card" onclick="selectWine('H', 'Sparkling')">
+                        <div class="wine-label">H</div>
+                        <div class="wine-category">Sparkling</div>
+                    </div>
+                    <div class="wine-card" onclick="selectWine('I', 'Sparkling')">
+                        <div class="wine-label">I</div>
+                        <div class="wine-category">Sparkling</div>
+                    </div>
+                </div>
+                <button class="button" onclick="finishRating()">Finish & Submit</button>
+            </div>
+
+            <!-- Screen 3: Rating Entry -->
+            <div class="screen" id="ratingScreen">
+                <div class="current-wine">
+                    <h2 id="currentWineLetter">A</h2>
+                    <p id="currentWineCategory">White</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Rating</label>
+                    <div class="rating-container">
+                        <div class="rating-scale" id="ratingScale">
+                            <input type="radio" id="rating1" name="rating" value="1">
+                            <label for="rating1">1</label>
+                            <input type="radio" id="rating2" name="rating" value="2">
+                            <label for="rating2">2</label>
+                            <input type="radio" id="rating3" name="rating" value="3">
+                            <label for="rating3">3</label>
+                            <input type="radio" id="rating4" name="rating" value="4">
+                            <label for="rating4">4</label>
+                            <input type="radio" id="rating5" name="rating" value="5">
+                            <label for="rating5">5</label>
+                            <input type="radio" id="rating6" name="rating" value="6">
+                            <label for="rating6">6</label>
+                            <input type="radio" id="rating7" name="rating" value="7">
+                            <label for="rating7">7</label>
+                            <input type="radio" id="rating8" name="rating" value="8">
+                            <label for="rating8">8</label>
+                            <input type="radio" id="rating9" name="rating" value="9">
+                            <label for="rating9">9</label>
+                            <input type="radio" id="rating10" name="rating" value="10">
+                            <label for="rating10">10</label>
+                        </div>
+                        <div class="rating-labels">
+                            <div class="rating-label-text">
+                                <span class="main">Very Poor</span>
+                                <span class="sub">like RGR in dark age</span>
+                            </div>
+                            <div class="rating-label-text">
+                                <span class="main">Excellent</span>
+                                <span class="sub">like Rob in Imperial</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comments">Thoughts</label>
+                    <textarea id="comments"></textarea>
+                </div>
+
+                <button class="button didnt-try" onclick="didntTry()">Didn't Try This Wine</button>
+                <div class="button-group">
+                    <button class="button secondary" onclick="backToSelection()">Back</button>
+                    <button class="button" onclick="saveWineRating()">Save & Continue</button>
+                </div>
+            </div>
+
+            <!-- Screen 4: Final Confirmation -->
+            <div class="screen" id="confirmScreen">
+                <h2 style="text-align: center; color: #6D2E46; margin-bottom: 20px;">Ready to Submit?</h2>
+                <p style="text-align: center; color: #666; margin-bottom: 30px;">
+                    You've rated <strong id="ratedCount">0</strong> wine(s). Your responses will be submitted now.
+                </p>
+                <div class="button-group">
+                    <button class="button secondary" onclick="backToSelection()">Add More</button>
+                    <button class="button" onclick="submitAllRatings()">Submit All</button>
+                </div>
+            </div>
+
+            <div class="success-message" id="successMessage">
+                Thank you! Your ratings have been submitted successfully.
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                Oops! Something went wrong. Please try again or contact the host.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // REPLACE THIS URL with your Google Apps Script web app URL
+        const SCRIPT_URL = 'YOUR_GOOGLE_SCRIPT_URL_HERE';
+
+        // State management
+        let userName = '';
+        let currentWine = null;
+        let wineRatings = {};
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function submitName() {
+            const nameInput = document.getElementById('name').value.trim();
+            if (!nameInput) {
+                alert('Please enter your name');
+                return;
+            }
+            userName = nameInput;
+            showScreen('selectionScreen');
+            document.getElementById('headerSubtitle').textContent = `Welcome, ${userName}!`;
+        }
+
+        function selectWine(letter, category) {
+            currentWine = { letter, category };
+            document.getElementById('currentWineLetter').textContent = `Wine ${letter}`;
+            document.getElementById('currentWineCategory').textContent = category;
+
+            // Load existing rating if any
+            if (wineRatings[letter]) {
+                const rating = wineRatings[letter].rating;
+                const comments = wineRatings[letter].comments;
+
+                if (rating !== '0') {
+                    document.querySelector(`input[name="rating"][value="${rating}"]`).checked = true;
+                } else {
+                    document.querySelectorAll('input[name="rating"]').forEach(r => r.checked = false);
+                }
+                document.getElementById('comments').value = comments;
+            } else {
+                // Clear form
+                document.querySelectorAll('input[name="rating"]').forEach(r => r.checked = false);
+                document.getElementById('comments').value = '';
+            }
+
+            showScreen('ratingScreen');
+        }
+
+        function didntTry() {
+            wineRatings[currentWine.letter] = {
+                rating: '0',
+                comments: ''
+            };
+            updateWineCard(currentWine.letter);
+            backToSelection();
+        }
+
+        function saveWineRating() {
+            const rating = document.querySelector('input[name="rating"]:checked');
+            if (!rating) {
+                alert('Please select a rating or click "Didn\'t Try This Wine"');
+                return;
+            }
+
+            const comments = document.getElementById('comments').value.trim();
+
+            wineRatings[currentWine.letter] = {
+                rating: rating.value,
+                comments: comments
+            };
+
+            updateWineCard(currentWine.letter);
+            backToSelection();
+        }
+
+        function updateWineCard(letter) {
+            const cards = document.querySelectorAll('.wine-card');
+            cards.forEach(card => {
+                const label = card.querySelector('.wine-label').textContent;
+                if (label === letter) {
+                    card.classList.add('rated');
+                }
+            });
+        }
+
+        function backToSelection() {
+            showScreen('selectionScreen');
+            updateRatedCount();
+        }
+
+        function updateRatedCount() {
+            const count = Object.keys(wineRatings).length;
+            document.getElementById('ratedCount').textContent = count;
+        }
+
+        function finishRating() {
+            updateRatedCount();
+            showScreen('confirmScreen');
+        }
+
+        async function submitAllRatings() {
+            const submitBtn = event.target;
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            // Prepare data
+            const data = {
+                timestamp: new Date().toISOString(),
+                name: userName,
+                wineA_rating: wineRatings['A']?.rating || '0',
+                wineA_comments: wineRatings['A']?.comments || '',
+                wineB_rating: wineRatings['B']?.rating || '0',
+                wineB_comments: wineRatings['B']?.comments || '',
+                wineC_rating: wineRatings['C']?.rating || '0',
+                wineC_comments: wineRatings['C']?.comments || '',
+                wineD_rating: wineRatings['D']?.rating || '0',
+                wineD_comments: wineRatings['D']?.comments || '',
+                wineE_rating: wineRatings['E']?.rating || '0',
+                wineE_comments: wineRatings['E']?.comments || '',
+                wineF_rating: wineRatings['F']?.rating || '0',
+                wineF_comments: wineRatings['F']?.comments || '',
+                wineG_rating: wineRatings['G']?.rating || '0',
+                wineG_comments: wineRatings['G']?.comments || '',
+                wineH_rating: wineRatings['H']?.rating || '0',
+                wineH_comments: wineRatings['H']?.comments || '',
+                wineI_rating: wineRatings['I']?.rating || '0',
+                wineI_comments: wineRatings['I']?.comments || ''
+            };
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    mode: 'no-cors'
+                });
+
+                successMsg.style.display = 'block';
+                successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Reset form after 2 seconds
+                setTimeout(() => {
+                    location.reload();
+                }, 3000);
+
+            } catch (error) {
+                console.error('Error:', error);
+                errorMsg.style.display = 'block';
+                errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit All';
+            }
+        }
+    </script>
+</body>
+</html>
