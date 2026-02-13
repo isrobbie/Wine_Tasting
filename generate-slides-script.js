@@ -157,17 +157,12 @@ function createWinnersSlide(presentation, stats) {
       const winner = stats.wines[stats.categoryWinners[cat.key]];
       
       const wineLetter = slide.insertTextBox('Wine ' + winner.letter);
-      wineLetter.setLeft(120).setTop(cat.y + 32).setWidth(150).setHeight(30);
+      wineLetter.setLeft(120).setTop(cat.y + 32).setWidth(200).setHeight(30);
       const wineText = wineLetter.getText();
       wineText.getTextStyle().setFontSize(24).setFontFamily('Arial').setBold(true).setForegroundColor('#4CAF50');
       
-      const wineName = slide.insertTextBox(winner.name);
-      wineName.setLeft(290).setTop(cat.y + 32).setWidth(280).setHeight(30);
-      const nameText = wineName.getText();
-      nameText.getTextStyle().setFontSize(10).setFontFamily('Arial').setForegroundColor('#666666');
-      
       const rating = slide.insertTextBox('Rating: ' + winner.average.toFixed(1));
-      rating.setLeft(120).setTop(cat.y + 62).setWidth(150).setHeight(22);
+      rating.setLeft(120).setTop(cat.y + 62).setWidth(200).setHeight(22);
       const ratingText = rating.getText();
       ratingText.getTextStyle().setFontSize(16).setFontFamily('Arial').setForegroundColor('#666666');
     } else {
@@ -191,15 +186,15 @@ function createRankingsSlide(presentation, stats) {
   
   // Table headers
   const headers = ['Rank', 'Wine', 'Category', 'Avg', 'Range', 'Std Dev'];
-  const colWidths = [40, 250, 80, 60, 70, 70];
-  const colStarts = [50, 90, 340, 420, 480, 550];
+  const colWidths = [50, 80, 100, 70, 90, 90];
+  const colStarts = [60, 110, 190, 290, 360, 450];
   
   let yPos = 85;
   headers.forEach((header, i) => {
     const box = slide.insertTextBox(header);
     box.setLeft(colStarts[i]).setTop(yPos).setWidth(colWidths[i]).setHeight(25);
     const text = box.getText();
-    text.getTextStyle().setFontSize(12).setFontFamily('Arial').setBold(true).setForegroundColor('#3D1B2C');
+    text.getTextStyle().setFontSize(14).setFontFamily('Arial').setBold(true).setForegroundColor('#3D1B2C');
   });
   
   yPos = 115;
@@ -208,7 +203,7 @@ function createRankingsSlide(presentation, stats) {
     const wine = stats.wines[wineLetter];
     const rowData = [
       wine.hasRatings ? actualRank.toString() : '-',
-      'Wine ' + wine.letter + ' - ' + wine.name,
+      'Wine ' + wine.letter,
       wine.category,
       wine.hasRatings ? wine.average.toFixed(1) : 'n/a',
       wine.hasRatings ? wine.min + '-' + wine.max : 'n/a',
@@ -219,8 +214,7 @@ function createRankingsSlide(presentation, stats) {
       const box = slide.insertTextBox(data);
       box.setLeft(colStarts[i]).setTop(yPos).setWidth(colWidths[i]).setHeight(22);
       const text = box.getText();
-      const fontSize = i === 1 ? 8 : 11; // Smaller font for wine name column
-      text.getTextStyle().setFontSize(fontSize).setFontFamily('Arial').setForegroundColor('#333333');
+      text.getTextStyle().setFontSize(12).setFontFamily('Arial').setForegroundColor('#333333');
       if (actualRank === 1 && wine.hasRatings) {
         text.getTextStyle().setBold(true).setForegroundColor('#4CAF50');
       }
