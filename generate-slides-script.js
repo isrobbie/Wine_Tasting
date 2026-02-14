@@ -22,8 +22,9 @@ function generatePresentation() {
   if (slides.length > 0) slides[0].remove();
   
   createTitleSlide(presentation);
-  createWinnersSlide(presentation, stats);
-  createRankingsSlide(presentation, stats);
+  createCategoryWinnersSlide(presentation, stats);
+  createCommentsSlide(presentation, stats);
+  createRankingsTableSlide(presentation, stats);
   createTasterAwardsSlide(presentation, stats, responses);
   createThankYouSlide(presentation);
   
@@ -38,25 +39,19 @@ function calculateStats(responses) {
     'D': 'White', 'E': 'White', 'F': 'White',
     'G': 'Red', 'H': 'Red', 'I': 'Red'
   };
-  const wineNames = {
-    'A': 'Langlois-Chateau Crémant de Loire Brut',
-    'B': 'Bouvet Ladubay Saumur Brut',
-    'C': 'Maison Antech Blanquette de Limoux Brut',
-    'D': 'Krasno Sauvignon Blanc-Ribolla Gialla',
-    'E': 'Forrest Wines \'The Doctors\' Sauvignon Blanc',
-    'F': 'Beau Rivage Bordeaux Blanc',
-    'G': 'Porta 6',
-    'H': 'LB7 Red',
-    'I': 'La Belle Angèle Pinot Noir'
-  };
   
   const wineStats = {};
   
   wines.forEach((wine, idx) => {
     const ratingCol = (idx * 2) + 2;
+    const commentCol = ratingCol + 1;
     const ratings = responses
       .map(row => parseFloat(row[ratingCol]))
       .filter(r => r > 0 && !isNaN(r));
+    
+    const comments = responses
+      .map(row => row[commentCol])
+      .filter(c => c && typeof c === 'string' && c.trim().length > 0);
     
     if (ratings.length > 0) {
       const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
@@ -67,7 +62,6 @@ function calculateStats(responses) {
       
       wineStats[wine] = {
         letter: wine,
-        name: wineNames[wine],
         category: categories[wine],
         average: avg,
         min: min,
@@ -75,12 +69,12 @@ function calculateStats(responses) {
         stdDev: stdDev,
         count: ratings.length,
         ratings: ratings,
+        comments: comments,
         hasRatings: true
       };
     } else {
       wineStats[wine] = {
         letter: wine,
-        name: wineNames[wine],
         category: categories[wine],
         average: 0,
         min: 0,
@@ -88,6 +82,7 @@ function calculateStats(responses) {
         stdDev: 0,
         count: 0,
         ratings: [],
+        comments: [],
         hasRatings: false
       };
     }
@@ -131,14 +126,14 @@ function createTitleSlide(presentation) {
   t2.getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.CENTER);
 }
 
-function createWinnersSlide(presentation, stats) {
+function createCategoryWinnersSlide(presentation, stats) {
   const slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
   slide.getBackground().setSolidFill('#FFFFFF');
   
   const title = slide.insertTextBox('THE WINNERS');
-  title.setLeft(50).setTop(30).setWidth(600).setHeight(60);
+  title.setLeft(50).setTop(30).setWidth(600).setHeight(50);
   const titleText = title.getText();
-  titleText.getTextStyle().setFontSize(48).setFontFamily('Arial').setBold(true).setForegroundColor('#6D2E46');
+  titleText.getTextStyle().setFontSize(36).setFontFamily('Arial').setBold(true).setForegroundColor('#6D2E46');
   titleText.getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.CENTER);
   
   const categories = [
@@ -149,39 +144,146 @@ function createWinnersSlide(presentation, stats) {
   
   categories.forEach(cat => {
     const catLabel = slide.insertTextBox(cat.name);
-    catLabel.setLeft(120).setTop(cat.y).setWidth(200).setHeight(30);
+    catLabel.setLeft(120).setTop(cat.y).setWidth(200).setHeight(25);
     const catText = catLabel.getText();
-    catText.getTextStyle().setFontSize(18).setFontFamily('Arial').setBold(true).setForegroundColor('#6D2E46');
+    catText.getTextStyle().setFontSize(16).setFontFamily('Arial').setBold(true).setForegroundColor('#6D2E46');
     
     if (stats.categoryWinners[cat.key]) {
       const winner = stats.wines[stats.categoryWinners[cat.key]];
       
       const wineLetter = slide.insertTextBox('Wine ' + winner.letter);
-      wineLetter.setLeft(120).setTop(cat.y + 32).setWidth(200).setHeight(30);
+      wineLetter.setLeft(120).setTop(cat.y + 28).setWidth(200).setHeight(28);
       const wineText = wineLetter.getText();
-      wineText.getTextStyle().setFontSize(24).setFontFamily('Arial').setBold(true).setForegroundColor('#4CAF50');
+      wineText.getTextStyle().setFontSize(22).setFontFamily('Arial').setBold(true).setForegroundColor('#4CAF50');
       
       const rating = slide.insertTextBox('Rating: ' + winner.average.toFixed(1));
-      rating.setLeft(120).setTop(cat.y + 62).setWidth(200).setHeight(22);
+      rating.setLeft(120).setTop(cat.y + 56).setWidth(200).setHeight(20);
       const ratingText = rating.getText();
-      ratingText.getTextStyle().setFontSize(16).setFontFamily('Arial').setForegroundColor('#666666');
+      ratingText.getTextStyle().setFontSize(14).setFontFamily('Arial').setForegroundColor('#666666');
     } else {
       const noRating = slide.insertTextBox('n/a');
-      noRating.setLeft(120).setTop(cat.y + 32).setWidth(150).setHeight(30);
+      noRating.setLeft(120).setTop(cat.y + 28).setWidth(150).setHeight(28);
       const naText = noRating.getText();
-      naText.getTextStyle().setFontSize(24).setFontFamily('Arial').setBold(true).setForegroundColor('#999999');
+      naText.getTextStyle().setFontSize(22).setFontFamily('Arial').setBold(true).setForegroundColor('#999999');
     }
   });
 }
 
-function createRankingsSlide(presentation, stats) {
+function createCommentsSlide(presentation, stats) {
+  const slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
+  slide.getBackground().setSolidFill('#ECE2D0');
+  
+  const title = slide.insertTextBox('MEMORABLE COMMENTS');
+  title.setLeft(50).setTop(20).setWidth(600).setHeight(40);
+  const titleText = title.getText();
+  titleText.getTextStyle().setFontSize(32).setFontFamily('Arial').setBold(true).setForegroundColor('#6D2E46');
+  titleText.getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.CENTER);
+  
+  let yPos = 75;
+  
+  // Best wine comments
+  if (stats.sorted.length > 0 && stats.wines[stats.sorted[0]].hasRatings) {
+    const bestWine = stats.wines[stats.sorted[0]];
+    if (bestWine.comments && bestWine.comments.length > 0) {
+      const randomComments = getRandomItems(bestWine.comments, 2);
+      
+      const bestLabel = slide.insertTextBox('Best Wine (Wine ' + bestWine.letter + '):');
+      bestLabel.setLeft(80).setTop(yPos).setWidth(540).setHeight(20);
+      const labelText = bestLabel.getText();
+      labelText.getTextStyle().setFontSize(14).setFontFamily('Arial').setBold(true).setForegroundColor('#4CAF50');
+      yPos += 25;
+      
+      randomComments.forEach(comment => {
+        const commentBox = slide.insertTextBox('"' + comment + '"');
+        commentBox.setLeft(100).setTop(yPos).setWidth(500).setHeight(30);
+        const commentText = commentBox.getText();
+        commentText.getTextStyle().setFontSize(11).setFontFamily('Arial').setItalic(true).setForegroundColor('#333333');
+        yPos += 35;
+      });
+      yPos += 10;
+    }
+  }
+  
+  // Worst wine comments
+  const worstIdx = stats.sorted.length - 1;
+  if (worstIdx >= 0 && stats.wines[stats.sorted[worstIdx]].hasRatings) {
+    const worstWine = stats.wines[stats.sorted[worstIdx]];
+    if (worstWine.comments && worstWine.comments.length > 0) {
+      const randomComments = getRandomItems(worstWine.comments, 2);
+      
+      const worstLabel = slide.insertTextBox('Lowest Rated (Wine ' + worstWine.letter + '):');
+      worstLabel.setLeft(80).setTop(yPos).setWidth(540).setHeight(20);
+      const labelText = worstLabel.getText();
+      labelText.getTextStyle().setFontSize(14).setFontFamily('Arial').setBold(true).setForegroundColor('#d32f2f');
+      yPos += 25;
+      
+      randomComments.forEach(comment => {
+        const commentBox = slide.insertTextBox('"' + comment + '"');
+        commentBox.setLeft(100).setTop(yPos).setWidth(500).setHeight(30);
+        const commentText = commentBox.getText();
+        commentText.getTextStyle().setFontSize(11).setFontFamily('Arial').setItalic(true).setForegroundColor('#333333');
+        yPos += 35;
+      });
+      yPos += 10;
+    }
+  }
+  
+  // Longest and shortest comments
+  const allComments = [];
+  Object.keys(stats.wines).forEach(wine => {
+    if (stats.wines[wine].comments) {
+      stats.wines[wine].comments.forEach(c => {
+        allComments.push({ text: c, wine: wine });
+      });
+    }
+  });
+  
+  if (allComments.length > 0) {
+    const longest = allComments.sort((a, b) => b.text.length - a.text.length)[0];
+    const shortest = allComments.sort((a, b) => a.text.length - b.text.length)[0];
+    
+    if (longest) {
+      const longLabel = slide.insertTextBox('Most Detailed:');
+      longLabel.setLeft(80).setTop(yPos).setWidth(540).setHeight(20);
+      const labelText = longLabel.getText();
+      labelText.getTextStyle().setFontSize(14).setFontFamily('Arial').setBold(true).setForegroundColor('#6D2E46');
+      yPos += 25;
+      
+      const longComment = slide.insertTextBox('"' + longest.text + '" (Wine ' + longest.wine + ')');
+      longComment.setLeft(100).setTop(yPos).setWidth(500).setHeight(40);
+      const commentText = longComment.getText();
+      commentText.getTextStyle().setFontSize(10).setFontFamily('Arial').setItalic(true).setForegroundColor('#333333');
+      yPos += 45;
+    }
+    
+    if (shortest && shortest.text !== longest.text) {
+      const shortLabel = slide.insertTextBox('Most Concise:');
+      shortLabel.setLeft(80).setTop(yPos).setWidth(540).setHeight(20);
+      const labelText = shortLabel.getText();
+      labelText.getTextStyle().setFontSize(14).setFontFamily('Arial').setBold(true).setForegroundColor('#6D2E46');
+      yPos += 25;
+      
+      const shortComment = slide.insertTextBox('"' + shortest.text + '" (Wine ' + shortest.wine + ')');
+      shortComment.setLeft(100).setTop(yPos).setWidth(500).setHeight(30);
+      const commentText = shortComment.getText();
+      commentText.getTextStyle().setFontSize(11).setFontFamily('Arial').setItalic(true).setForegroundColor('#333333');
+    }
+  }
+}
+
+function getRandomItems(arr, count) {
+  const shuffled = arr.slice().sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, Math.min(count, arr.length));
+}
+
+function createRankingsTableSlide(presentation, stats) {
   const slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
   slide.getBackground().setSolidFill('#ECE2D0');
   
   const title = slide.insertTextBox('FULL RANKINGS');
-  title.setLeft(50).setTop(20).setWidth(600).setHeight(50);
+  title.setLeft(50).setTop(20).setWidth(600).setHeight(40);
   const titleText = title.getText();
-  titleText.getTextStyle().setFontSize(40).setFontFamily('Arial').setBold(true).setForegroundColor('#6D2E46');
+  titleText.getTextStyle().setFontSize(32).setFontFamily('Arial').setBold(true).setForegroundColor('#6D2E46');
   titleText.getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.CENTER);
   
   // Table headers
@@ -230,9 +332,9 @@ function createTasterAwardsSlide(presentation, stats, responses) {
   slide.getBackground().setSolidFill('#6D2E46');
   
   const title = slide.insertTextBox('TASTER AWARDS');
-  title.setLeft(50).setTop(25).setWidth(600).setHeight(50);
+  title.setLeft(50).setTop(25).setWidth(600).setHeight(40);
   const titleText = title.getText();
-  titleText.getTextStyle().setFontSize(44).setFontFamily('Arial').setBold(true).setForegroundColor('#FFFFFF');
+  titleText.getTextStyle().setFontSize(36).setFontFamily('Arial').setBold(true).setForegroundColor('#FFFFFF');
   titleText.getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.CENTER);
   
   const tasterStats = [];
